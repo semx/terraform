@@ -6,6 +6,7 @@ package command
 import (
 	"context"
 	"fmt"
+	"log"
 	"path/filepath"
 	"strings"
 
@@ -123,9 +124,19 @@ func (c *StateMigrateCommand) Run(rawArgs []string) int {
 
 		upgrade := false // The first provider download step will never be an upgrade. Either it's constrained by a preexisting lock or there is no lock.
 		var srcProviderDiags tfdiags.Diagnostics
-		_, sourceLock, _, _, srcProviderDiags = c.getSingleProvider(ctx, smi.StateStore, smi.StateStoreProvider.Requirement, srcLocks, upgrade, MigrationSource, stateMigrate)
+		var safeInstallAction SafeStateStoreProviderInstallAction
+		var stateStoreProviderAuthResult *getproviders.PackageAuthenticationResult
+		_, sourceLock, safeInstallAction, stateStoreProviderAuthResult, srcProviderDiags = c.getSingleProvider(ctx, smi.StateStore, smi.StateStoreProvider.Requirement, srcLocks, upgrade, MigrationSource, stateMigrate)
 		diags = diags.Append(srcProviderDiags)
 		if srcProviderDiags.HasErrors() {
+			stateMigrate.Diagnostics(diags)
+			return 1
+		}
+
+		// Course of action depends on the SafeStateStoreProviderInstallAction returned from getProvidersFromPSSConfig
+		safeDiags := c.handleSafeProviderInstallAction(safeInstallAction, smi.StateStore.ProviderAddr, stateStoreProviderAuthResult, sourceLock, srcLocks, args.SourceLockFilePath, c, stateMigrate)
+		diags = diags.Append(safeDiags)
+		if safeDiags.HasErrors() {
 			stateMigrate.Diagnostics(diags)
 			return 1
 		}
@@ -214,9 +225,19 @@ func (c *StateMigrateCommand) Run(rawArgs []string) int {
 		// returned. This will be added the dependency lock file after a successful migration.
 		upgrade := false // TODO - control this by -upgrade flag
 		var dstProviderDiags tfdiags.Diagnostics
-		_, destinationLock, _, _, dstProviderDiags = c.getSingleProvider(ctx, rootMod.StateStore, dstReq, mergedLocks, upgrade, MigrationDestination, stateMigrate)
+		var safeInstallAction SafeStateStoreProviderInstallAction
+		var stateStoreProviderAuthResult *getproviders.PackageAuthenticationResult
+		_, destinationLock, safeInstallAction, stateStoreProviderAuthResult, dstProviderDiags = c.getSingleProvider(ctx, rootMod.StateStore, dstReq, mergedLocks, upgrade, MigrationDestination, stateMigrate)
 		diags = diags.Append(dstProviderDiags)
 		if dstProviderDiags.HasErrors() {
+			stateMigrate.Diagnostics(diags)
+			return 1
+		}
+
+		// Course of action depends on the SafeStateStoreProviderInstallAction returned from getProvidersFromPSSConfig
+		safeDiags := c.handleSafeProviderInstallAction(safeInstallAction, rootMod.StateStore.ProviderAddr, stateStoreProviderAuthResult, destinationLock, mergedLocks, args.DestinationLockFilePath, c, stateMigrate)
+		diags = diags.Append(safeDiags)
+		if safeDiags.HasErrors() {
 			stateMigrate.Diagnostics(diags)
 			return 1
 		}
