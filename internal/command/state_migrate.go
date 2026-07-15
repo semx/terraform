@@ -134,7 +134,7 @@ func (c *StateMigrateCommand) Run(rawArgs []string) int {
 		}
 
 		// Course of action depends on the SafeStateStoreProviderInstallAction returned from getProvidersFromPSSConfig
-		safeDiags := c.handleSafeProviderInstallAction(safeInstallAction, smi.StateStore.ProviderAddr, stateStoreProviderAuthResult, sourceLock, srcLocks, args.SourceLockFilePath, c, stateMigrate)
+		safeDiags := c.handleSafeProviderInstallAction(safeInstallAction, smi.StateStore.ProviderAddr, stateStoreProviderAuthResult, sourceLock, srcLocks, args.SourceLockFilePath, args.SourceLockFilePathUserSupplied, c, stateMigrate)
 		diags = diags.Append(safeDiags)
 		if safeDiags.HasErrors() {
 			stateMigrate.Diagnostics(diags)
@@ -235,7 +235,7 @@ func (c *StateMigrateCommand) Run(rawArgs []string) int {
 		}
 
 		// Course of action depends on the SafeStateStoreProviderInstallAction returned from getProvidersFromPSSConfig
-		safeDiags := c.handleSafeProviderInstallAction(safeInstallAction, rootMod.StateStore.ProviderAddr, stateStoreProviderAuthResult, destinationLock, mergedLocks, args.DestinationLockFilePath, c, stateMigrate)
+		safeDiags := c.handleSafeProviderInstallAction(safeInstallAction, rootMod.StateStore.ProviderAddr, stateStoreProviderAuthResult, destinationLock, mergedLocks, args.DestinationLockFilePath, args.DestinationLockFilePathUserSupplied, c, stateMigrate)
 		diags = diags.Append(safeDiags)
 		if safeDiags.HasErrors() {
 			stateMigrate.Diagnostics(diags)

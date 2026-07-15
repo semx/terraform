@@ -16,11 +16,13 @@ const lockFileName = depsfile.LockFilePath // .terraform.lock.hcl
 
 // StateMigrate represents the command-line arguments for the state migrate command.
 type StateMigrate struct {
-	SourceLockFilePath      string
-	DestinationLockFilePath string
-	Upgrade                 bool
-	ForceCopy               bool
-	InputEnabled            bool
+	SourceLockFilePath                  string
+	SourceLockFilePathUserSupplied      bool
+	DestinationLockFilePath             string
+	DestinationLockFilePathUserSupplied bool
+	Upgrade                             bool
+	ForceCopy                           bool
+	InputEnabled                        bool
 
 	ViewType ViewType
 }
@@ -91,6 +93,7 @@ func ParseStateMigrate(args []string) (*StateMigrate, tfdiags.Diagnostics) {
 				fmt.Sprintf("%q: %s", srcLockFilePath, err.Error()),
 			))
 		}
+		migrate.SourceLockFilePathUserSupplied = true
 	}
 
 	if dstLockFilePath == "" {
@@ -106,6 +109,7 @@ func ParseStateMigrate(args []string) (*StateMigrate, tfdiags.Diagnostics) {
 				fmt.Sprintf("%q: %s", dstLockFilePath, err.Error()),
 			))
 		}
+		migrate.DestinationLockFilePathUserSupplied = true
 	}
 
 	srcFilename := filepath.Base(srcLockFilePath)

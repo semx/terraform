@@ -3213,7 +3213,8 @@ func Test_handleSafeProviderInstallAction_inAutomation(t *testing.T) {
 		initView := views.NewInit(arguments.ViewHuman, view)
 		workDirLocks := depsfile.NewLocks() // working directory lock file is empty
 
-		gotDiags := m.handleSafeProviderInstallAction(action, p, auth, providerLock, workDirLocks, flagLockfilePath, c, initView)
+		flagLockfilePathSetByUser := false
+		gotDiags := m.handleSafeProviderInstallAction(action, p, auth, providerLock, workDirLocks, flagLockfilePath, flagLockfilePathSetByUser, c, initView)
 
 		// Expect an error due to the provider download not being controlled by a pre-existing lock
 		if !gotDiags.HasErrors() {
@@ -3245,8 +3246,9 @@ To fix this, create a minimal configuration containing the specific provider ver
 		view, _ := testView(t)
 		smView := views.NewStateMigrate(arguments.ViewHuman, view)
 		workDirLocks := depsfile.NewLocks() // working directory lock file is empty
+		flagLockfilePathSetByUser := false
 
-		gotDiags := m.handleSafeProviderInstallAction(action, p, auth, providerLock, workDirLocks, flagLockfilePath, c, smView)
+		gotDiags := m.handleSafeProviderInstallAction(action, p, auth, providerLock, workDirLocks, flagLockfilePath, flagLockfilePathSetByUser, c, smView)
 
 		// Expect an error due to the provider download not being controlled by a pre-existing lock
 		if !gotDiags.HasErrors() {
@@ -3285,7 +3287,8 @@ To fix this, create a minimal configuration(s) containing the specific provider 
 			nil,
 		)
 
-		gotDiags := m.handleSafeProviderInstallAction(action, p, auth, providerLock, workDirLocks, flagLockfilePath, c, initView)
+		flagLockfilePathSetByUser := false
+		gotDiags := m.handleSafeProviderInstallAction(action, p, auth, providerLock, workDirLocks, flagLockfilePath, flagLockfilePathSetByUser, c, initView)
 
 		// Expect an error due to the provider download not being controlled by a pre-existing lock
 		if !gotDiags.HasErrors() {
@@ -3325,7 +3328,8 @@ To fix this, create a minimal configuration containing the specific provider ver
 			nil,
 		)
 
-		gotDiags := m.handleSafeProviderInstallAction(action, p, auth, providerLock, workDirLocks, flagLockfilePath, c, smView)
+		flagLockfilePathSetByUser := false
+		gotDiags := m.handleSafeProviderInstallAction(action, p, auth, providerLock, workDirLocks, flagLockfilePath, flagLockfilePathSetByUser, c, smView)
 
 		// Expect an error due to the provider download not being controlled by a pre-existing lock
 		if !gotDiags.HasErrors() {
@@ -3365,7 +3369,8 @@ To fix this, create a minimal configuration(s) containing the specific provider 
 		)
 
 		setFlagLockfilePath := "./user-supplied-lockfile/terraform.lock.hcl"
-		gotDiags := m.handleSafeProviderInstallAction(action, p, auth, providerLock, inputLocks, setFlagLockfilePath, c, initView)
+		flagLockfilePathSetByUser := true
+		gotDiags := m.handleSafeProviderInstallAction(action, p, auth, providerLock, inputLocks, setFlagLockfilePath, flagLockfilePathSetByUser, c, initView)
 
 		// Expect an error due to the provider download not being controlled by a pre-existing lock
 		if !gotDiags.HasErrors() {
@@ -3406,7 +3411,8 @@ To fix this, create a minimal configuration containing the specific provider ver
 		)
 
 		setFlagLockfilePath := "./user-supplied-lockfile/terraform.lock.hcl"
-		gotDiags := m.handleSafeProviderInstallAction(action, p, auth, providerLock, inputLocks, setFlagLockfilePath, c, smView)
+		flagLockfilePathSetByUser := true
+		gotDiags := m.handleSafeProviderInstallAction(action, p, auth, providerLock, inputLocks, setFlagLockfilePath, flagLockfilePathSetByUser, c, smView)
 
 		// Expect an error due to the provider download not being controlled by a pre-existing lock
 		if !gotDiags.HasErrors() {

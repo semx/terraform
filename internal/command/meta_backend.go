@@ -3104,14 +3104,19 @@ func (m *Meta) determineSafeProviderInstallAction(provider addrs.Provider, provi
 // handleSafeProviderInstallAction takes the action determined by `determineSafeProviderInstallAction` and either prompts the user for approval, or returns an error if something has gone wrong with pre-supplied locks when Terraform was run in automation.
 //
 // NOTE: the command parameter is used to determine which command is being run, so that we can provide more specific guidance to the user. Do not use that parameter for any other purpose!
-func (m *Meta) handleSafeProviderInstallAction(action SafeStateStoreProviderInstallAction, provider addrs.Provider, stateStoreProviderAuthResult *getproviders.PackageAuthenticationResult, stateStoreProviderLock, locksBeforeInstall *depsfile.Locks, flagLockfilePath string, command cli.Command, view views.ProviderInstaller) tfdiags.Diagnostics {
+//
+// NOTE: the flagLockfilePath string parameter has different behaviours in init and state migrate commands:
+// * init: if the user doesn't supply a lock file path the flagLockfilePath == ""
+// * state migrate: if the user doesn't supply a lock file path the flagLockfilePath == "<default lock file path>"
+// Therefore we also have the flagLockfilePathUserSupplied bool parameter to indicate whether the user actually supplied a lock file path or not.
+func (m *Meta) handleSafeProviderInstallAction(action SafeStateStoreProviderInstallAction, provider addrs.Provider, stateStoreProviderAuthResult *getproviders.PackageAuthenticationResult, stateStoreProviderLock, locksBeforeInstall *depsfile.Locks, flagLockfilePath string, flagLockfilePathUserSupplied bool, command cli.Command, view views.ProviderInstaller) tfdiags.Diagnostics {
 	var diags tfdiags.Diagnostics
 
 	switch action {
 	case Proceed:
 		// do nothing; provider is already trusted and there's no need to notify the user.
 
-		if flagLockfilePath != "" {
+		if flagLockfilePathUserSupplied {
 			// If the user supplied a lock file path via CLI flag, we should notify them that it was used.
 			view.Output(views.StateStoreProviderAutomationApprovedMessage)
 			view.Spacer()
@@ -3136,7 +3141,7 @@ func (m *Meta) handleSafeProviderInstallAction(action SafeStateStoreProviderInst
 
 				var lockfileProblem string
 				switch {
-				case flagLockfilePath != "":
+				case flagLockfilePathUserSupplied:
 					// CLI-supplied file
 					lockfileProblem = fmt.Sprintf("The lock file at %q (supplied via CLI flag) was empty or did not contain a lock for the state store provider.", flagLockfilePath)
 				case locksBeforeInstall.Empty():
