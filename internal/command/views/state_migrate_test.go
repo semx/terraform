@@ -4,6 +4,7 @@
 package views
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
